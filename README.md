@@ -2,10 +2,7 @@
 
 Business question: **City Hotel vs Resort Hotel, which one performs best?**
 
-Pipeline: `hotel_pipeline.py` (load -> describe -> clean -> merge -> fill -> export -> charts).
-Only functions seen in the course slides (read_csv/read_excel, isna, duplicated, drop_duplicates,
-.str.strip/lower, replace, to_numeric, to_datetime, fillna, where, mask, abs, quantile/between,
-merge, groupby/agg/transform, pivot_table, matplotlib, seaborn).
+Pipeline: `hotel_pipeline.py`
 
 ## Lancer (depuis le dossier data-project)
 ```bash
