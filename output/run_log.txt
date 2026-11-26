@@ -1,0 +1,129 @@
+
+1. LOAD
+PMS: (24480, 20)  CRM: (24608, 18)
+
+2. DESCRIBE
+
+Missing values (PMS):
+ children    815
+meal        490
+dtype: int64
+
+Missing values (CRM):
+ BookingRef                            8
+property                              8
+checkin_date                          8
+n_adults                            254
+lead_time_days                        8
+guest_country                         8
+market_segment                        8
+distribution_channel                  8
+customer_type                         8
+is_repeated_guest                     8
+previous_cancellations                8
+previous_bookings_not_canceled        8
+agent_id                           3328
+company_id                        23226
+days_in_waiting_list                  8
+reservation_status                    8
+reservation_status_date               8
+total_price                         502
+dtype: int64
+
+Duplicates
+  PMS exact copies: 150
+  PMS booking_id repeated: 230
+  CRM exact copies: 107
+
+Inconsistent spellings (number of different values)
+  hotel: 10 for 2 hotels
+  property: 10 for 2 hotels
+  market_segment: 22 for 8 segments
+  reservation_status: 11 for 3 statuses
+  arrival_date_month: 47 for 12 months
+
+Inaccurate values
+  adr that is not a number: 608
+  adr < 0: 40 | adr > 1000 EUR per night: 31
+  adults > 10 in one room: 23
+  stays_in_week_nights = -1: 35
+  lead_time_days = 9999: 25
+
+3a. CLEAN PMS
+  [PMS] drop exact duplicates: rows 24480 -> 24330, values changed: 150
+  [PMS] keep latest version of each booking: rows 24330 -> 24250, values changed: 80
+  [PMS] hotel: strip + lower -> 2 names: rows 24250 -> 24250, values changed: 1455
+  [PMS] is_canceled: no/yes -> 0/1: rows 24250 -> 24250, values changed: 1212
+  [PMS] arrival month: name/abbreviation/number -> 1-12: rows 24250 -> 24250, values changed: 4152
+  [PMS] adr: text -> number (placeholders -> NaN): rows 24250 -> 24250, values changed: 603
+  [PMS] adr < 0 -> abs(): rows 24250 -> 24250, values changed: 40
+  [PMS] week nights -1 -> NaN: rows 24250 -> 24250, values changed: 35
+  [PMS] children NaN -> 0: rows 24250 -> 24250, values changed: 810
+  [PMS] meal NaN -> 'Undefined': rows 24250 -> 24250, values changed: 485
+
+3b. CLEAN CRM
+  [CRM] drop empty rows: rows 24608 -> 24600, values changed: 8
+  [CRM] drop exact duplicates: rows 24600 -> 24500, values changed: 100
+  [CRM] market_segment: 22 spellings -> 8: rows 24500 -> 24500, values changed: 368
+  segments now: 8
+  [CRM] reservation_status: 11 spellings -> 3: rows 24500 -> 24500, values changed: 735
+  checkin_date not read: 0
+  [CRM] lead_time 9999 -> NaN: rows 24500 -> 24500, values changed: 25
+
+4. MERGE
+  in both files: 23750 | PMS only: 500 | CRM only: 750
+  [MERGED] outer merge on booking_id: rows 48750 -> 25000, values changed: 0
+  booking_id repeated after merge: 0
+
+5. FILL WITH THE OTHER FILE
+  [MERGED] adults > 10 -> CRM n_adults: rows 25000 -> 25000, values changed: 19
+  [MERGED] is_canceled from CRM status: rows 25000 -> 25000, values changed: 50
+  [MERGED] adr x100 -> / 100 (checked with CRM total_price): rows 25000 -> 25000, values changed: 30
+  [MERGED] week nights = total_price / adr - weekend: rows 25000 -> 25000, values changed: 35
+  [MERGED] adr NaN = total_price / nights: rows 25000 -> 25000, values changed: 112
+  [MERGED] total_price NaN = adr x nights: rows 25000 -> 25000, values changed: 964
+  [MERGED] lead_time NaN -> median by hotel: rows 25000 -> 25000, values changed: 25
+  [MERGED] flag adr outliers (IQR per hotel), kept: rows 25000 -> 25000, values changed: 915
+
+6. EXPORT
+  clean table: (25000, 35) | cleaning steps: 24
+  missing values left:
+ stays_in_weekend_nights            750
+children                           750
+babies                             750
+reserved_room_type                 750
+assigned_room_type                 750
+booking_changes                    750
+adr                                758
+required_car_parking_spaces        750
+total_of_special_requests          750
+record_updated_at                  750
+guest_country                      500
+is_repeated_guest                  500
+previous_cancellations             500
+previous_bookings_not_canceled     500
+agent_id                          3800
+days_in_waiting_list               500
+reservation_status                 500
+reservation_status_date            500
+total_price                         26
+nights                             750
+revenue                             17
+dtype: int64
+
+7a. CHARTS before / after
+
+7b. WHICH HOTEL PERFORMS BEST?
+hotel                City Hotel  Resort Hotel
+bookings               16621.00       8379.00
+cancel_rate                0.42          0.28
+revenue              2976243.69    2428015.99
+stays                   9579.00       6067.00
+median_adr               100.00         72.00
+avg_nights                 2.90          4.14
+revenue_per_stay         310.71        400.20
+revenue_per_booking      179.07        289.77
+repeat_guests              0.03          0.06
+lost_revenue         2345008.34    1217996.56
+
+Done: output/ and figures/

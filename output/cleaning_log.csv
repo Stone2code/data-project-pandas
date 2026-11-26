@@ -1,0 +1,25 @@
+table,step,rows_before,rows_after,values_changed
+PMS,drop exact duplicates,24480,24330,150
+PMS,keep latest version of each booking,24330,24250,80
+PMS,hotel: strip + lower -> 2 names,24250,24250,1455
+PMS,is_canceled: no/yes -> 0/1,24250,24250,1212
+PMS,arrival month: name/abbreviation/number -> 1-12,24250,24250,4152
+PMS,adr: text -> number (placeholders -> NaN),24250,24250,603
+PMS,adr < 0 -> abs(),24250,24250,40
+PMS,week nights -1 -> NaN,24250,24250,35
+PMS,children NaN -> 0,24250,24250,810
+PMS,meal NaN -> 'Undefined',24250,24250,485
+CRM,drop empty rows,24608,24600,8
+CRM,drop exact duplicates,24600,24500,100
+CRM,market_segment: 22 spellings -> 8,24500,24500,368
+CRM,reservation_status: 11 spellings -> 3,24500,24500,735
+CRM,lead_time 9999 -> NaN,24500,24500,25
+MERGED,outer merge on booking_id,48750,25000,0
+MERGED,adults > 10 -> CRM n_adults,25000,25000,19
+MERGED,is_canceled from CRM status,25000,25000,50
+MERGED,adr x100 -> / 100 (checked with CRM total_price),25000,25000,30
+MERGED,week nights = total_price / adr - weekend,25000,25000,35
+MERGED,adr NaN = total_price / nights,25000,25000,112
+MERGED,total_price NaN = adr x nights,25000,25000,964
+MERGED,lead_time NaN -> median by hotel,25000,25000,25
+MERGED,"flag adr outliers (IQR per hotel), kept",25000,25000,915
